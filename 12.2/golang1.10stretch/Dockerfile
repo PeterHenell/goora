@@ -27,10 +27,11 @@ RUN apt-get update && apt-get install -y \
   && rm -f ${ORA_PREFIX}-sqlplus_${ORA_VERSION}.0.1.0-2_amd64.deb
 
 ENV LD_LIBRARY_PATH /usr/lib/oracle/${ORA_VERSION}/client64/lib
-ENV NLS_LANG Japanese_Japan.UTF8
 ENV PATH $PATH:/usr/lib/oracle/${ORA_VERSION}/client64/bin
 
 ADD oci8.pc /usr/lib/pkgconfig/
-RUN go get github.com/mattn/go-oci8
 
 WORKDIR /go
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+CMD ["go", "run", "main.go"]

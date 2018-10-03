@@ -10,11 +10,14 @@ services:
     image: container-registry.oracle.com/database/enterprise:12.2.0.1
     environment: 
       - NLS_LANG=AMERICAN_AMERICA.UTF8
+    volumes:
+      - oracle_data:/opt/oracle/oradata
     ports:
       - 1521:1521
       - 5500:5500
 
   oracle-collector:
+    container_name: oracle-collector
     build: ./12.2/golang1.10stretch
     restart: on-failure
     command: go run main.go
@@ -39,6 +42,11 @@ services:
   prometheus-server:
       container_name: promserver
       image: prom/prometheus
+      command:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus'
+        - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+        - '--web.console.templates=/usr/share/prometheus/consoles'
       ports:
         - 9090:9090
       links:
@@ -46,13 +54,22 @@ services:
         - oracle-collector:oracle-collector
       volumes:
         - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+        - prometheus_data:/prometheus
 
   grafana-ui:
       container_name: grafana
       image: grafana/grafana
       ports:
         - 3000:3000
+      volumes:
+        - grafana_data:/var/lib/grafana
+        - ./grafana/provisioning/:/etc/grafana/provisioning/
       environment:
         - GF_SECURITY_ADMIN_PASSWORD=secret
       links:
-        - prometheus-server:prometheus
+        - prometheus-server:prometheus-server
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  oracle_data: {}

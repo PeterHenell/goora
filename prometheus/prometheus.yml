@@ -20,7 +20,12 @@ scrape_configs:
     scrape_timeout: 5s
 
     static_configs:
-      - targets: ['localhost:9090', 'oracle-collector:9161']
+      - targets: ['localhost:9090']
+
+  - job_name: "oracle-collector"
+    scrape_interval: "15s"
+    static_configs:
+      - targets: ['oracle-collector:9161']
 
   - job_name: 'machine-vm'
 

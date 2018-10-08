@@ -160,6 +160,444 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 		e.scrapeErrors.WithLabelValues("sessions").Inc()
 	}
 
+	if err = ScrapeOsStats(db, ch); err != nil {
+		log.Errorln("Error scraping for osstats:", err)
+		e.scrapeErrors.WithLabelValues("osstats").Inc()
+	}
+
+	if err = ScrapeFRA(db, ch); err != nil {
+		log.Errorln("Error scraping for fra:", err)
+		e.scrapeErrors.WithLabelValues("fra").Inc()
+	}
+
+	if err = ScrapeUsers(db, ch); err != nil {
+		log.Errorln("Error scraping for users:", err)
+		e.scrapeErrors.WithLabelValues("users").Inc()
+	}
+
+	if err = ScrapeRMAN(db, ch); err != nil {
+		log.Errorln("Error scraping for rman:", err)
+		e.scrapeErrors.WithLabelValues("rman").Inc()
+	}
+
+	if err = ScrapeInstanceStatus(db, ch); err != nil {
+		log.Errorln("Error scraping for status:", err)
+		e.scrapeErrors.WithLabelValues("status").Inc()
+	}
+
+	if err = ScrapeSqlStats(db, ch); err != nil {
+		log.Errorln("Error scraping for sql stats:", err)
+		e.scrapeErrors.WithLabelValues("sqlstats").Inc()
+	}
+
+}
+
+func ScrapeUsers(db *sql.DB, ch chan<- prometheus.Metric) error {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	// Retrieve status and expiry date for all accounts.
+	rows, err = db.Query("SELECT TRUNC(expiry_date) - TRUNC(sysdate) as expiration, username, REPLACE(account_status, ' ', '') FROM dba_users")
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			expiration     float64
+			username       string
+			account_status string
+		)
+		if err := rows.Scan(&expiration, &username, &account_status); err != nil {
+			return err
+		}
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "users", "expiration"),
+				"Utilisateurs", []string{"username", "status"}, nil),
+			prometheus.CounterValue,
+			expiration,
+			username,
+			account_status,
+		)
+	}
+	return nil
+}
+
+// scrapes values from v$sqlstats
+func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	// Retrieve status and expiry date for all accounts.
+	rows, err = db.Query("select SQL_ID, parse_calls, disk_reads, direct_writes, direct_reads, buffer_gets, rows_processed, fetches, executions, loads, invalidations, cpu_time, elapsed_time, avg_hard_parse_time, application_wait_time, concurrency_wait_time, user_IO_wait_time, plsql_exec_time, java_exec_time, sorts, sharable_mem, total_sharable_mem, physical_read_bytes, physical_read_requests, physical_write_bytes, physical_write_requests  from v$sqlstats")
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			SQL_ID                  string
+			parse_calls             float64
+			disk_reads              float64
+			direct_writes           float64
+			direct_reads            float64
+			buffer_gets             float64
+			rows_processed          float64
+			fetches                 float64
+			executions              float64
+			loads                   float64
+			invalidations           float64
+			cpu_time                float64
+			elapsed_time            float64
+			avg_hard_parse_time     float64
+			application_wait_time   float64
+			concurrency_wait_time   float64
+			user_IO_wait_time       float64
+			plsql_exec_time         float64
+			java_exec_time          float64
+			sorts                   float64
+			sharable_mem            float64
+			total_sharable_mem      float64
+			physical_read_bytes     float64
+			physical_read_requests  float64
+			physical_write_bytes    float64
+			physical_write_requests float64
+		)
+		if err := rows.Scan(&SQL_ID, &parse_calls, &disk_reads, &direct_writes, &direct_reads, &buffer_gets, &rows_processed, &fetches, &executions, &loads, &invalidations, &cpu_time, &elapsed_time, &avg_hard_parse_time, &application_wait_time, &concurrency_wait_time, &user_IO_wait_time, &plsql_exec_time, &java_exec_time, &sorts, &sharable_mem, &total_sharable_mem, &physical_read_bytes, &physical_read_requests, &physical_write_bytes, &physical_write_requests); err != nil {
+			return err
+		}
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "parse_calls"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			parse_calls,
+			SQL_ID,
+			"parse_calls",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "disk_reads"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			disk_reads,
+			SQL_ID,
+			"disk_reads",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "direct_writes"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			direct_writes,
+			SQL_ID,
+			"direct_writes",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "direct_reads"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			direct_reads,
+			SQL_ID,
+			"direct_reads",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "buffer_gets"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			buffer_gets,
+			SQL_ID,
+			"buffer_gets",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "rows_processed"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			rows_processed,
+			SQL_ID,
+			"rows_processed",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "fetches"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			fetches,
+			SQL_ID,
+			"fetches",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "executions"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			executions,
+			SQL_ID,
+			"executions",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "loads"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			loads,
+			SQL_ID,
+			"loads",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "invalidations"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			invalidations,
+			SQL_ID,
+			"invalidations",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "cpu_time"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			cpu_time,
+			SQL_ID,
+			"cpu_time",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "elapsed_time"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			elapsed_time,
+			SQL_ID,
+			"elapsed_time",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "avg_hard_parse_time"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			avg_hard_parse_time,
+			SQL_ID,
+			"avg_hard_parse_time",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "application_wait_time"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			application_wait_time,
+			SQL_ID,
+			"application_wait_time",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "plsql_exec_time"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			plsql_exec_time,
+			SQL_ID,
+			"plsql_exec_time",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "java_exec_time"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			java_exec_time,
+			SQL_ID,
+			"java_exec_time",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "user_IO_wait_time"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			user_IO_wait_time,
+			SQL_ID,
+			"user_IO_wait_time",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "sorts"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			sorts,
+			SQL_ID,
+			"sorts",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "sharable_mem"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			sharable_mem,
+			SQL_ID,
+			"sharable_mem",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "total_sharable_mem"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			total_sharable_mem,
+			SQL_ID,
+			"total_sharable_mem",
+		)
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "physical_read_bytes"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			physical_read_bytes,
+			SQL_ID,
+			"physical_read_bytes",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "physical_read_requests"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			physical_read_requests,
+			SQL_ID,
+			"physical_read_requests",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "physical_write_bytes"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			physical_write_bytes,
+			SQL_ID,
+			"physical_write_bytes",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "physical_write_requests"),
+				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+			prometheus.GaugeValue,
+			physical_write_requests,
+			SQL_ID,
+			"physical_write_requests",
+		)
+
+	}
+	return nil
+}
+
+func ScrapeFRA(db *sql.DB, ch chan<- prometheus.Metric) error {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+
+	rows, err = db.Query("select trunc(sum(PERCENT_SPACE_USED)) as value from v$flash_recovery_area_usage")
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			value float64
+		)
+		if err := rows.Scan(&value); err != nil {
+			return err
+		}
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "fra", "used"),
+				"FRA disponible", []string{}, nil),
+			prometheus.GaugeValue,
+			value,
+		)
+	}
+	return nil
+}
+
+func ScrapeRMAN(db *sql.DB, ch chan<- prometheus.Metric) error {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	// Retrieve status and type for all sessions.
+	rows, err = db.Query("SELECT row_level, operation AS bkp_operation, status AS bkp_status, object_type, TO_CHAR(start_time,'YYYY-MM-DD_HH24:MI:SS') AS bkp_start_time, TO_CHAR(end_time,'YYYY-MM-DD_HH24:MI:SS') as bkp_end_time, TO_CHAR(start_time,'DD') as bkp_start_nbday FROM V$RMAN_STATUS WHERE START_TIME > SYSDATE -1 AND operation = 'BACKUP'")
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			Value           float64
+			row_level       float64
+			bkp_operation   string
+			bkp_status      string
+			object_type     string
+			bkp_start_time  string
+			bkp_end_time    string
+			bkp_start_nbday string
+		)
+		if err := rows.Scan(&row_level, &bkp_operation, &bkp_status, &object_type, &bkp_start_time, &bkp_end_time, &bkp_start_nbday); err != nil {
+			return err
+		}
+
+		if bkp_status == "COMPLETED" {
+			Value = 0 // Green value
+		} else
+		if bkp_status == "RUNNING" {
+			Value = 1 // Yellow value
+		} else {
+			Value = 2 // Red value
+		}
+
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "rman", "backup"),
+				"Backup RMAN", []string{"operation", "status", "type", "start_time", "end_time", "start_nbday"}, nil),
+			prometheus.GaugeValue,
+			Value,
+			bkp_operation,
+			bkp_status,
+			object_type,
+			bkp_start_time,
+			bkp_end_time,
+			bkp_start_nbday,
+		)
+	}
+	return nil
+}
+
+// ScrapeInstanceStatus collects session metrics from the v$instance view.
+func ScrapeInstanceStatus(db *sql.DB, ch chan<- prometheus.Metric) error {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	rows, err = db.Query("SELECT instance_name as name, status from v$instance")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var status string
+		var name string
+		var value float64
+		if err := rows.Scan(&name, &status); err != nil {
+			return err
+		}
+		if status == "OPEN" {
+			value = 2
+		} else
+		if status == "MOUNTED" {
+			value = 1
+		} else {
+			value = 0
+		}
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "status", name),
+				"Statut de la base", []string{}, nil),
+			prometheus.CounterValue,
+			value,
+		)
+	}
+	return nil
 }
 
 // ScrapeSessions collects session metrics from the v$session view.
@@ -392,6 +830,34 @@ WHERE
 		ch <- prometheus.MustNewConstMetric(tablespaceBytesDesc, prometheus.GaugeValue, float64(bytes), tablespace_name, contents)
 		ch <- prometheus.MustNewConstMetric(tablespaceMaxBytesDesc, prometheus.GaugeValue, float64(max_bytes), tablespace_name, contents)
 		ch <- prometheus.MustNewConstMetric(tablespaceFreeBytesDesc, prometheus.GaugeValue, float64(bytes_free), tablespace_name, contents)
+	}
+	return nil
+}
+
+// ScrapeOsStats collects osstats from the v$wosstat view.
+func ScrapeOsStats(db *sql.DB, ch chan<- prometheus.Metric) error {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	rows, err = db.Query("select stat_name, value from v$osstat where cumulative = 'YES'")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var name string
+		var value float64
+		if err := rows.Scan(&name, &value); err != nil {
+			return err
+		}
+		name = cleanName(name)
+		ch <- prometheus.MustNewConstMetric(
+			prometheus.NewDesc(prometheus.BuildFQName(namespace, "os_stats", name),
+				"Cumulative measures from V$OSSTAT", []string{}, nil),
+			prometheus.GaugeValue,
+			value,
+		)
 	}
 	return nil
 }

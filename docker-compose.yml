@@ -11,7 +11,7 @@ services:
     environment: 
       - NLS_LANG=AMERICAN_AMERICA.UTF8
     volumes:
-      - oracle_data:/opt/oracle/oradata
+      - oracle_data:/ORCL
     ports:
       - 1521:1521
       - 5500:5500
@@ -29,6 +29,23 @@ services:
       - "9161:9161"
     links: 
       - oracledb:oracledb
+    working_dir: /go/src/oracle-collector
+    volumes:
+      - ./12.2/golang1.10stretch/oracle-collector:/go/src/oracle-collector
+
+  tyr-collector:
+    container_name: tyr-collector
+    build: ./12.2/golang1.10stretch
+    restart: on-failure
+    command: go run main.go
+    environment: 
+      - DATA_SOURCE_NAME=petehene/Kh29prH9MEbA@tyr:1521/PRD_EDM
+      - NLS_LANG=AMERICAN_AMERICA.UTF8
+    ports:
+      - "8002:8000"
+      - "9162:9161"
+    extra_hosts: 
+      - tyr:10.156.151.234
     working_dir: /go/src/oracle-collector
     volumes:
       - ./12.2/golang1.10stretch/oracle-collector:/go/src/oracle-collector
@@ -52,6 +69,7 @@ services:
       links:
         - metrics-gateway:metrics-gateway
         - oracle-collector:oracle-collector
+        - tyr-collector:tyr-collector
       volumes:
         - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
         - prometheus_data:/prometheus

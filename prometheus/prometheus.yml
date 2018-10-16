@@ -26,7 +26,7 @@ scrape_configs:
     scrape_interval: 1m
     scrape_timeout: 50s
     static_configs:
-      - targets: ['oracle-collector:9161']
+      - targets: ['oracle-collector:9161', 'tyr-collector:9161']
 
   - job_name: 'machine-vm'
 

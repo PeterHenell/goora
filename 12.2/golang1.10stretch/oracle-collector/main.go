@@ -165,15 +165,15 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 		e.scrapeErrors.WithLabelValues("osstats").Inc()
 	}
 
-	if err = ScrapeFRA(db, ch); err != nil {
-		log.Errorln("Error scraping for fra:", err)
-		e.scrapeErrors.WithLabelValues("fra").Inc()
-	}
+	// if err = ScrapeFRA(db, ch); err != nil {
+	// 	log.Errorln("Error scraping for fra:", err)
+	// 	e.scrapeErrors.WithLabelValues("fra").Inc()
+	// }
 
-	if err = ScrapeUsers(db, ch); err != nil {
-		log.Errorln("Error scraping for users:", err)
-		e.scrapeErrors.WithLabelValues("users").Inc()
-	}
+	// if err = ScrapeUsers(db, ch); err != nil {
+	// 	log.Errorln("Error scraping for users:", err)
+	// 	e.scrapeErrors.WithLabelValues("users").Inc()
+	// }
 
 	if err = ScrapeRMAN(db, ch); err != nil {
 		log.Errorln("Error scraping for rman:", err)
@@ -185,10 +185,10 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 		e.scrapeErrors.WithLabelValues("status").Inc()
 	}
 
-	if err = ScrapeSqlStats(db, ch); err != nil {
-		log.Errorln("Error scraping for sql stats:", err)
-		e.scrapeErrors.WithLabelValues("sqlstats").Inc()
-	}
+	// if err = ScrapeSqlStats(db, ch); err != nil {
+	// 	log.Errorln("Error scraping for sql stats:", err)
+	// 	e.scrapeErrors.WithLabelValues("sqlstats").Inc()
+	// }
 
 }
 
@@ -274,7 +274,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		}
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "parse_calls"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			parse_calls,
 			SQL_ID,
@@ -282,7 +282,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "disk_reads"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			disk_reads,
 			SQL_ID,
@@ -290,7 +290,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "direct_writes"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			direct_writes,
 			SQL_ID,
@@ -298,7 +298,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "direct_reads"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			direct_reads,
 			SQL_ID,
@@ -306,7 +306,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "buffer_gets"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			buffer_gets,
 			SQL_ID,
@@ -315,7 +315,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "rows_processed"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			rows_processed,
 			SQL_ID,
@@ -323,7 +323,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "fetches"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			fetches,
 			SQL_ID,
@@ -331,7 +331,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "executions"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			executions,
 			SQL_ID,
@@ -339,7 +339,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "loads"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			loads,
 			SQL_ID,
@@ -347,7 +347,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "invalidations"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			invalidations,
 			SQL_ID,
@@ -355,7 +355,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "cpu_time"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			cpu_time,
 			SQL_ID,
@@ -364,7 +364,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "elapsed_time"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			elapsed_time,
 			SQL_ID,
@@ -373,7 +373,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "avg_hard_parse_time"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			avg_hard_parse_time,
 			SQL_ID,
@@ -382,7 +382,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "application_wait_time"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			application_wait_time,
 			SQL_ID,
@@ -391,7 +391,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "plsql_exec_time"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			plsql_exec_time,
 			SQL_ID,
@@ -400,7 +400,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "java_exec_time"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			java_exec_time,
 			SQL_ID,
@@ -409,7 +409,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "user_IO_wait_time"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			user_IO_wait_time,
 			SQL_ID,
@@ -418,7 +418,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "sorts"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			sorts,
 			SQL_ID,
@@ -427,7 +427,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "sharable_mem"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			sharable_mem,
 			SQL_ID,
@@ -436,7 +436,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "total_sharable_mem"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			total_sharable_mem,
 			SQL_ID,
@@ -445,7 +445,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "physical_read_bytes"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			physical_read_bytes,
 			SQL_ID,
@@ -453,7 +453,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "physical_read_requests"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			physical_read_requests,
 			SQL_ID,
@@ -461,7 +461,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "physical_write_bytes"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			physical_write_bytes,
 			SQL_ID,
@@ -469,7 +469,7 @@ func ScrapeSqlStats(db *sql.DB, ch chan<- prometheus.Metric) error {
 		)
 		ch <- prometheus.MustNewConstMetric(
 			prometheus.NewDesc(prometheus.BuildFQName(namespace, "sqlstats", "physical_write_requests"),
-				"Information from v$sqlstats", []string{"sqlid","stat"}, nil),
+				"Information from v$sqlstats", []string{"sqlid", "stat"}, nil),
 			prometheus.GaugeValue,
 			physical_write_requests,
 			SQL_ID,
@@ -540,8 +540,7 @@ func ScrapeRMAN(db *sql.DB, ch chan<- prometheus.Metric) error {
 
 		if bkp_status == "COMPLETED" {
 			Value = 0 // Green value
-		} else
-		if bkp_status == "RUNNING" {
+		} else if bkp_status == "RUNNING" {
 			Value = 1 // Yellow value
 		} else {
 			Value = 2 // Red value
@@ -584,8 +583,7 @@ func ScrapeInstanceStatus(db *sql.DB, ch chan<- prometheus.Metric) error {
 		}
 		if status == "OPEN" {
 			value = 2
-		} else
-		if status == "MOUNTED" {
+		} else if status == "MOUNTED" {
 			value = 1
 		} else {
 			value = 0
